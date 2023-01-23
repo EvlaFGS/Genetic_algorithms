@@ -1,0 +1,99 @@
+import math
+import random 
+
+MAX_ITER = 500
+
+POP_SiZE = 50 
+
+alpha0 = 1
+Betha0 = 0.98
+gamma = 1
+deltha = 0.97
+
+Ub = 5
+Lb = -5
+scale = math.fabs(Ub-Lb)
+
+alpha_t = alpha0 * deltha * scale
+
+def square_of_sum(Xa, Xb): #вычисляет квадрат разности 
+    return (Xb - Xa)**2 
+
+def distance(LI, iter_i, iter_j): #вычисляет расстояние между светячками 
+    S = []
+     
+    for i in range(len(LI[0])):
+        S.append(square_of_sum(LI[iter_i][i], LI[iter_j][i]))
+
+    sum = 0
+
+    for i in range(len(LI[0])):
+        sum += S[i]
+    
+    return (math.sqrt(sum))
+
+def position_update(LI, iter_i, iter_j): #обновление позиции между светлячками 
+    
+    T1 = []
+
+    r = distance(LI, iter_i, iter_j)
+
+    indic = - gamma * r**2
+
+    for i in range(len(LI[0])):
+        t_new = LI[iter_i][i] + (Betha0 * math.e**(indic) * (LI[iter_j][i] - LI[iter_i][i])) + (alpha_t * (random.random() - 0.5) * scale) 
+        if (t_new > Ub):
+            t_new = Ub
+        elif (t_new < Lb):
+            t_new = Lb
+        T1.append(t_new)
+
+    return(T1)
+
+def target_func(x): #функция,с которой работаем 
+    return (x**6-math.sin(x+7*x**3))
+
+FLY_POP = []
+
+dimention = 1 # размерность 
+for i in range(POP_SiZE):
+    x12 = []
+    for j in range(dimention): 
+        x12.append(random.uniform(Lb, Ub))
+    FLY_POP.append(x12)
+
+Fx= []
+
+for i in range(len(FLY_POP)):
+    Fx.append(target_func(FLY_POP[i][0]))
+
+best_iter = []
+best_fx = [] 
+best_xs = []
+
+for iter in range(MAX_ITER):
+    xs_new = []
+
+    minIndex = Fx.index(min(Fx)) #определяем лучшее решение за итерацию 
+    best_fx.append(Fx[minIndex])    
+    best_xs.append(FLY_POP[minIndex])
+    best_iter.append(iter)  
+
+    best_index_in_all_gen = best_fx.index(min(best_fx))
+
+    for i in range(POP_SiZE): 
+        for j in range(POP_SiZE):
+            if (Fx[i] > Fx[j]): 
+                xs_new = position_update(FLY_POP, i, j)
+                fx_new = target_func(xs_new[0])
+                if(fx_new < Fx[i]):
+                    FLY_POP[i] = xs_new
+                    Fx[i] = fx_new
+    
+#сравнивать с поколениями лучшее минимальное 
+
+BestminIndex = best_fx.index(min(best_fx)) #определяем лушчшее решение за все итерации
+
+print("The best result is iteration " + str(BestminIndex))
+print("function value = " + str(best_fx[BestminIndex])) 
+print(str(best_xs[BestminIndex]))
